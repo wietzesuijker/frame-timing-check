@@ -7,6 +7,6 @@ How to use:
 2. Press Space to start. Per frame press `E` for empty or unlabelable, or `A`, type the species and press Enter (`Esc` pauses, left arrow goes back).
 3. At the end the page shows n and mean seconds per class, the ratio mean empty / mean animal with its 95% bootstrap CI, and offers the session CSV. `node test_ratio.js timing_session.csv` recomputes the same numbers from a saved CSV.
 
-The result panel needs `strata.json` (the stored empty/animal status of each frame, used only after the last frame). Frames with a failed load or over 120 s are excluded from timing.
+`strata.js` holds the stored empty/animal status of each frame, used only after the last frame. Frames with a failed load or over 120 s are excluded from timing.
 
 Data: frames are from iWildCam 2022 (camera-trap images, via LILA BC, https://lila.science/datasets/iwildcam-2022). License: see LILA BC for license.
