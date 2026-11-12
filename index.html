@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Timing session</title>
+<style>
+:root{--bg:#111;--fg:#eee;--dim:#999;--acc:#6cf}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif}
+#bar{display:flex;gap:2em;padding:.5em 1em;align-items:center;color:var(--dim)}
+#prog{color:var(--fg);font-weight:600}
+#img{display:block;margin:0 auto;max-width:100vw;max-height:calc(100vh - 6.5em);object-fit:contain}
+#entry{text-align:center;padding:.4em}
+#sp{font-size:1.3em;width:24em;padding:.2em .4em}
+.panel{max-width:40em;margin:15vh auto;line-height:1.6;text-align:center}
+button{font-size:1.2em;padding:.5em 1.2em}
+kbd{border:1px solid var(--dim);border-radius:3px;padding:0 .3em;color:var(--acc)}
+[hidden]{display:none!important}
+</style></head><body>
+<div id="bar"><span id="prog"></span><span><kbd>E</kbd> empty or unlabelable &nbsp; <kbd>A</kbd> animal, type species, <kbd>Enter</kbd> (<kbd>Tab</kbd> = empty instead) &nbsp; <kbd>&larr;</kbd> back &nbsp; <kbd>Esc</kbd> pause</span></div>
+<div id="start" class="panel"><p>Each frame: press <kbd>E</kbd> if no identifiable animal, or <kbd>A</kbd> then type the species (suggestions appear) and <kbd>Enter</kbd>. Pressed <kbd>A</kbd> by mistake? <kbd>Tab</kbd> marks the frame empty. <kbd>&larr;</kbd> goes back to the previous frame to change its answer. Type <i>unknown</i> if there is an animal you cannot name.</p>
+<p>The clock runs from when a frame appears until you answer. <kbd>Esc</kbd> pauses and hides the frame; leaving the tab also pauses.</p>
+
+<p>Press <kbd>Space</kbd> to start.</p></div>
+<img id="img" alt="camera-trap frame" hidden>
+<div id="entry" hidden><input id="sp" list="cls" autocomplete="off" placeholder="species, Enter to submit"><datalist id="cls"></datalist></div>
+<div id="pause" class="panel" hidden><p>Paused. Press <kbd>Esc</kbd> to resume.</p></div>
+<div id="done" class="panel" hidden><p id="msg">Done. Download the CSV to keep your session.</p><div id="res"></div>
+<button id="dl">Download CSV</button></div>
+<script src="ratio.js"></script>
+<script>
+const FRAMES = [{"row": 12784, "file_id": "9690bca2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/9690bca2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 5632, "file_id": "8da049f0-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8da049f0-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 5611, "file_id": "8d99e0e2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8d99e0e2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 6374, "file_id": "8e9a76d2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8e9a76d2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12180, "file_id": "95c8181a-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/95c8181a-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 4145, "file_id": "8bbff02c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8bbff02c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 4967, "file_id": "8cd294c4-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8cd294c4-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 14100, "file_id": "9834ea60-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/9834ea60-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 5757, "file_id": "8dc76fd0-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8dc76fd0-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 7736, "file_id": "904e13b2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/904e13b2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 11683, "file_id": "95205198-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/95205198-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12235, "file_id": "95db53f8-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/95db53f8-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12362, "file_id": "9607e26a-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/9607e26a-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12666, "file_id": "96649df2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/96649df2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 1260, "file_id": "87f8ed0e-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/87f8ed0e-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 6051, "file_id": "8e280674-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8e280674-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 13242, "file_id": "97242c1c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/97242c1c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 11186, "file_id": "94915650-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/94915650-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 3881, "file_id": "8b62aa98-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8b62aa98-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 5513, "file_id": "8d79ed96-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8d79ed96-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 8382, "file_id": "911a90ae-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/911a90ae-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 3737, "file_id": "8b328ad4-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8b328ad4-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 2490, "file_id": "8996ff98-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8996ff98-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 9572, "file_id": "92846b2c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/92846b2c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 4394, "file_id": "8c10e784-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8c10e784-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12428, "file_id": "961adb22-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/961adb22-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 7136, "file_id": "8f87f510-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8f87f510-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 9224, "file_id": "921cd638-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/921cd638-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 3244, "file_id": "8a891ef4-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8a891ef4-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 10825, "file_id": "941fda16-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/941fda16-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 9458, "file_id": "9262a46a-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/9262a46a-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 1210, "file_id": "87e632e0-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/87e632e0-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 9290, "file_id": "922f3d14-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/922f3d14-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 14960, "file_id": "994f72a8-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/994f72a8-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 13775, "file_id": "97cf234c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/97cf234c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 179, "file_id": "86a7e342-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/86a7e342-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 1342, "file_id": "881111c2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/881111c2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 10749, "file_id": "940c4316-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/940c4316-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 1883, "file_id": "88c08d00-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/88c08d00-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 416, "file_id": "86f0805c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/86f0805c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 685, "file_id": "87429360-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/87429360-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 120, "file_id": "86998ed2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/86998ed2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 4748, "file_id": "8c855e8e-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8c855e8e-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 10622, "file_id": "93e2fbc8-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/93e2fbc8-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 10203, "file_id": "934d59c4-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/934d59c4-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 10361, "file_id": "9386af26-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/9386af26-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 5983, "file_id": "8e130aa8-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8e130aa8-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 309, "file_id": "86ce4014-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/86ce4014-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 6974, "file_id": "8f5177ce-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8f5177ce-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 6115, "file_id": "8e3edc32-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8e3edc32-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 14720, "file_id": "98f85aea-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/98f85aea-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 8044, "file_id": "90b3e93a-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/90b3e93a-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 739, "file_id": "8752dbb2-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8752dbb2-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 13049, "file_id": "96f15058-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/96f15058-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 2608, "file_id": "89bb8728-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/89bb8728-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 12821, "file_id": "969cfd1e-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/969cfd1e-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 1118, "file_id": "87c62e3c-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/87c62e3c-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 7415, "file_id": "8fe2394e-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8fe2394e-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 4665, "file_id": "8c6da2f8-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8c6da2f8-21bc-11ea-a13a-137349068a90.jpg"}, {"row": 2130, "file_id": "8915d472-21bc-11ea-a13a-137349068a90.jpg", "src": "frames/8915d472-21bc-11ea-a13a-137349068a90.jpg"}];
+const CLASSES = ["acinonyx jubatus", "acryllium vulturinum", "aepyceros melampus", "agouti paca", "aguila sp", "alcelaphus buselaphus", "alopochen aegyptiaca", "andropadus virens", "aramides cajanea", "aramus guarauna", "arborophila rubrirostris", "arctonyx hoevenii", "ardeotis kori", "argusianus argus", "atherurus africanus", "ave desconocida", "bos taurus", "brotogeris sp", "burhinus capensis", "callosciurus notatus", "camelus dromedarius", "canis adustus", "canis familiaris", "canis lupus", "canis mesomelas", "capra aegagrus", "capricornis sumatraensis", "caracal caracal", "cephalophus nigrifrons", "cephalophus silvicultor", "cercopithecus lhoesti", "cercopithecus mitis", "cerdocyon thous", "claravis pretiosa", "colomys goslingi", "conepatus semistriatus", "crax rubra", "cricetomys gambianus", "crocuta crocuta", "cuniculus paca", "cuon alpinus", "dasyprocta fuliginosa", "dasyprocta punctata", "dasypus novemcinctus", "dendrocitta occipitalis", "deomys ferrugineus", "didelphis marsupialis", "didelphis sp", "eira barbara", "equus africanus", "equus ferus", "equus grevyi", "equus quagga", "erithacus cyane", "eupodotis senegalensis", "felis silvestris", "francolinus africanus", "francolinus nobilis", "funisciurus carruthersi", "genetta servalina", "genetta tigrina", "geotrygon montana", "geotrygon sp", "giraffa camelopardalis", "helarctos malayanus", "hemigalus derbyanus", "herpestes sanguineus", "hippopotamus amphibius", "hyaena hyaena", "hybomys univittatus", "hylomyscus stella", "hystrix brachyura", "hystrix cristata", "ictonyx striatus", "kobus ellipsiprymnus", "leiothrix argentauris", "leopardus pardalis", "leopardus wiedii", "leptotila plumbeiceps", "lepus saxatilis", "lissotis melanogaster", "lophotis gindiana", "lophura erythrophthalma", "lophura inornata", "lophura sp", "loxodonta africana", "lycaon pictus", "macaca sp", "madoqua guentheri", "malacomys longipes", "manis javanica", "martes flavigula", "mazama americana", "mazama gouazoubira", "mazama pandora", "mazama sp", "mazama temama", "meleagris ocellata", "melocichla mentalis", "momotus momota", "muntiacus muntjak", "mus minutoides", "musophaga rossae", "myiophoneus glaucinus", "myiophoneus melanurus", "myoprocta pratti", "myrmecophaga tridactyla", "nanger granti", "nasua narica", "nasua nasua", "neofelis diardi", "niltava sumatrana", "nothocrax urumutum", "odocoileus virginianus", "oenomys hypoxanthus", "ortalis vetula", "oryx beisa", "otocyon megalotis", "ovis aries", "paguma larvata", "pan troglodytes", "panthera leo", "panthera onca", "panthera pardus", "panthera tigris", "papio anubis", "paraxerus boehmi", "pardofelis marmorata", "pardofelis temminckii", "pecari tajacu", "penelope purpurascens", "peromyscus sp", "phacochoerus africanus", "philander opossum", "potamochoerus larvatus", "presbytis thomasi", "prionailurus bengalensis", "prionodon linsang", "procavia capensis", "procyon cancrivorus", "procyon lotor", "proechimys sp", "proteles cristata", "protoxerus stangeri", "psophia crepitans", "puma concolor", "puma yagoroundi", "puma yagouaroundi", "raphicerus campestris", "rollulus rouloul", "rusa unicolor", "sciurus sp", "streptopelia lugens", "streptopilia senegalensis", "struthio camelus", "sus scrofa", "sylvilagus brasiliensis", "syncerus caffer", "tamandua mexicana", "tapirus bairdii", "tapirus terrestris", "tayassu pecari", "thamnomys venustus", "tigrisoma mexicanum", "tinamus major", "tragelaphus oryx", "tragelaphus scriptus", "tragelaphus strepsiceros", "turtur calcospilos", "turtur tympanistria", "urocyon cinereoargenteus", "xerus rutilus"];
+const $ = id => document.getElementById(id);
+$('cls').innerHTML = CLASSES.map(c => `<option value="${c}">`).join('');
+let i = -1, started = false, finished = false, shownAt = null, shownIso = '', pausedMs = 0, pauseStart = null;
+const rows = [], carry = [];  // carry: seconds spent on a frame left with back before answering it
+function show(id, on) { $(id).hidden = !on; }
+function next(step = 1) {
+  i += step; show('entry', false); $('sp').value = ''; shownAt = null;
+  if (i >= FRAMES.length) return finish();
+  $('prog').textContent = `${i + 1} / ${FRAMES.length}`; pausedMs = 0; $('img').src = FRAMES[i].src;
+}
+$('img').onload = () => { shownAt = performance.now(); shownIso = new Date().toISOString(); };
+$('img').onerror = () => { record('LOAD_ERROR', NaN); next(); };
+function record(answer, seconds) {
+  const f = FRAMES[i];
+  // revisiting a frame adds the new time to the earlier time, so the frame's cost stays complete
+  const prev = rows[i], s0 = (prev ? +prev[5] : 0) + (carry[i] || 0), p0 = prev ? +prev[6] : 0;
+  carry[i] = 0;
+  rows[i] = [i + 1, f.row, f.file_id, prev ? prev[3] : shownIso, new Date().toISOString(), (s0 + seconds).toFixed(3), (p0 + pausedMs / 1000).toFixed(3), answer];
+}
+function submit(answer) {
+  if (shownAt === null || pauseStart !== null) return;
+  record(answer, (performance.now() - shownAt - pausedMs) / 1000); next();
+}
+function back() {
+  if (i === 0 || pauseStart !== null) return;
+  if (shownAt !== null) {
+    const t = (performance.now() - shownAt - pausedMs) / 1000;
+    if (rows[i]) record(rows[i][7], t); else carry[i] = (carry[i] || 0) + t;
+  }
+  next(-1);
+}
+function pause(on) {
+  if (!started || finished || on === (pauseStart !== null)) return;
+  if (on) pauseStart = performance.now(); else { pausedMs += performance.now() - pauseStart; pauseStart = null; }
+  show('pause', on); show('img', !on); $('sp').disabled = on;
+  if (!on && !$('entry').hidden) $('sp').focus();
+}
+function finish() {
+  finished = true; show('img', false); show('entry', false); show('done', true); $('prog').textContent = 'done'; showResult();
+}
+function showResult() {
+  fetch('strata.json').then(r => r.json()).then(st => {
+    const r = ratioResult(rows.filter(Boolean).map(x => ({row: x[1], seconds: +x[5], answer: x[7]})), st), f = (v, d) => v.toFixed(d);
+    $('res').innerHTML = `<p>Empty frames: n = ${r.empty.n}, mean ${f(r.empty.mean_s, 2)} s. Animal frames: n = ${r.animal.n}, mean ${f(r.animal.mean_s, 2)} s.</p>
+<p>Ratio (mean empty / mean animal) = <b>${f(r.ratio, 3)}</b>, 95% CI [${f(r.ratio_ci95[0], 2)}, ${f(r.ratio_ci95[1], 2)}]</p><p>${SENTENCE}</p>`;
+  }).catch(() => { $('res').textContent = 'Result not shown (serve the folder over http to see it); the CSV has all the data.'; });
+}
+const HEAD = ['order', 'row', 'file_id', 'shown_at', 'answered_at', 'seconds', 'paused_seconds', 'answer'];
+const q = v => /[",\n]/.test(String(v)) ? `"${String(v).replaceAll('"', '""')}"` : String(v);
+$('dl').onclick = () => {
+  const csv = [HEAD, ...rows.filter(Boolean)].map(r => r.map(q).join(',')).join('\n') + '\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'})); a.download = 'timing_session.csv'; a.click();
+};
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(true); });
+document.addEventListener('keydown', e => {
+  if (finished) return;
+  if (!started) { if (e.code === 'Space') { e.preventDefault(); started = true; show('start', false); show('img', true); next(); } return; }
+  if (e.key === 'Escape') { e.preventDefault(); pause(pauseStart === null); return; }
+  if (pauseStart !== null || shownAt === null) return;
+  if (e.key === 'ArrowLeft' && ($('entry').hidden || !$('sp').value)) { e.preventDefault(); back(); return; }
+  if ($('entry').hidden) {
+    if (e.key === 'e' || e.key === 'E') { e.preventDefault(); submit('empty'); }
+    else if (e.key === 'a' || e.key === 'A') { e.preventDefault(); show('entry', true); $('sp').focus(); }
+  } else if (e.key === 'Tab') { e.preventDefault(); submit('empty'); }  // changed mind after A: mark empty
+  else if (e.key === 'Enter' && $('sp').value.trim()) { e.preventDefault(); submit($('sp').value.trim()); }
+});
+</script></body></html>
